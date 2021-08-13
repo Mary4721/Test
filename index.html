@@ -4,8 +4,8 @@
         <title> Carol's Website</title>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <meta name="description" content="Carol's Personal Website">
-        <link rel="icon" type="image/png" href="Test/image/flower 4.png">
+        <meta name="description" content="Carol's Website">
+        <link rel="icon" type="image" href="Test/image/flower 4.png">
         <meta property="og:url"  content="https://github.com/Mary4721/Test.git" />
         <meta property="og:type"   content="website" />
         <meta property="og:title"   content="Kittitian living in Bim" />
@@ -42,8 +42,198 @@
     </head>
     <body>
         <header>
+           <div class="logo-section">
+                <a href="index.html"><img src="image/flower 4.png"/></a>
+                <p class="d-none d-sm-block"> Tips on Living in Barbados </p>
+                <form>
+                    <input type="search" name="search" placeholder="Search"/>
+                    <input type="submit" value="search" class="material-icons"/>
+                    <div class="search-autocomplete display-none">
+                        <ul>
+                            <li>suggestion keyword</li>
+                        </ul>
+                    </div>
+                </form>
+                <p>
+                    <a id="contact" href="contact.html">
+                        <span class="d-none d-sm-inline-block">Contact Me </span>
+                        <span class="material-icons">mail</span>
+                    </a>
+                </p>
+                <!--Button trigger modal-->
+                <p id="login-or-user-info">
+                    <button type="button" class="btn btn-primary btn-login" data-bs-toggle="modal" data-bs-target="#loginModal">LOGIN</button>
+                </p>
+            </div>
+            <!--Modal-->
+            <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="loginModalLabel"> LOGIN</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form class="modal-form flex-fill d-flex flex-column align-item-c-enter" role="form" method="POST">
+                                <input type="hidden" name="_token" value>
+                                <div class="form-group col-6 email-group">
+                                    <label class="control-label" for="email">E-mail Address</label>
+                                    <input type="email" class="form-control form-control-lg" id="email" name="email" placeholder="Enter Email" required>
+                                </div>
+                                <div class="form-group col-6 password-group">
+                                    <label class="control-label" for="password"> Password</label>
+                                    <input type="password" class="form-control form-control-lg"
+                                    id="password" name="password" placeholder="Enter Password" required>
+                                </div>
+                                <div class="form-group col-6 submit-group">
+                                    <button type="submit" class="btn btn-sucess mt-4 col-12"> login </button>
+                                </div>
+                            </form>
+                            <p class="modal-notice text-center">Do you have an account?
+                                <a href="javascript:void(0)" onclick="showSignUpForm()">Sign Up </a>
+                                Here!
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <script>
+               if($.cookie("user_name") && $.cookie("user_name") !== null) {
+        changeToUserInfoIcon();
+      }
+
+      function changeToUserInfoIcon() {
+        $('#login-or-user-info').html(`<a href="javascript:void(0)" onclick="logout()"><span class="material-icons-outlined">face</span></a>`);
+      }
+
+      const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+      $('.modal-form').on('submit', function(){
+          event.preventDefault();
+          
+          if($('.modal-dialog .modal-title').text() === "LOGIN") {
+             firebase.auth().signInWithEmailAndPassword($('.modal-form #email').val(), $('.modal-form #password').val())
+            .then((userCredential) => {
+                console.log(userCredential);
+                loginModal.hide();
+                $.cookie("user_name", userCredential.user.displayName ? userCredential.user.displayName : userCredential.user.email);
+                $.cookie("user_email", userCredential.user.email);
+                $.cookie("uid", userCredential.user.uid);
+                location.reload();
+            })
+            .catch((error) => {
+                console.log(error);
+                alert('login failed!');
+                loginModal.hide();
+            }); 
+          } else {
+            if($('.modal-form #password').val() !== $('.modal-form #confirm-password').val()){
+                return alert('password and confirm password is not the same');
+            }
+            firebase.auth().createUserWithEmailAndPassword($('.modal-form #email').val(), $('.modal-form #password').val())
+            .then(function(result) {
+                alert('Sign up succeeded! Please sign in again!');
+                loginModal.hide();
+                return result.user.updateProfile({
+                    displayName: $('.modal-form #name').val()
+                })
+            }).catch(function(error) {
+                console.log(error);
+                alert('Sign up failed!');
+                loginModal.hide();
+            });
+          }
+      })
+
+      function showSignUpForm(){
+        $('.modal-dialog .modal-title').text('CREATE ACCOUNT');
+
+        $(`<div class="form-group col-6 name-group">
+          <label class="control-label" for="name">Name</label>
+          <input type="text" class="form-control form-control-lg" id="name" name="name" placeholder="Enter Name" required>
+        </div>`).insertBefore( ".modal-dialog .email-group" );
+
+        $(`<div class="form-group col-6 confirm-password-group">
+          <label class="control-label" for="confirm-password">Confirm Password</label>
+          <input type="password" class="form-control form-control-lg" id="confirm-password" name="confirm-password" placeholder="Enter Password Again" required>
+        </div>`).insertAfter( ".modal-dialog .password-group" );
+
+        $('.modal-dialog .submit-group button').text('Create Account');
+        $('.modal-dialog .modal-notice').html(`Back to <a href="javascript:void(0)" onclick="showSignInForm()">Sign in</a>`)
+      }
+
+      function showSignInForm() {
+        $('.modal-dialog .modal-title').text('LOGIN');
+        $('.modal-dialog .name-group').remove();
+        $('.modal-dialog .confirm-password-group').remove();
+        $('.modal-dialog .submit-group button').text('Login');
+        $('.modal-dialog .modal-notice').html(`Do you have account? <a href="javascript:void(0)" onclick="showSignUpForm()">Sign up</a> here!`)
+      }
+
+      function logout() {
+        let isLogout = confirm("Are you sure you want to logout?");
+        isLogout &&
+            firebase.auth().signOut().then(() => {
+                $.removeCookie("uid");
+                $.removeCookie("user_name");
+                $.removeCookie("user_email");
+                location.reload();
+            }).catch((error) => {
+                console.log(error);
+                alert('Logout failed!');
+            });
+      }  
+            </script> 
         </header>
         <nav>
+           <ul>
+                <li class="btn-main">
+                    <a href="index.html">Home</a>
+                </li>
+                <li class="btn-main" onmouseover="mouseover_on_nav_item(this)" onmouseout="mouseout_on_nav_item(this)">
+                    <a href="preparation.html">Preparation</a>
+                    <div class="nav-submenu" onmouseover="mouseover_on_nav_item(this)">
+                        <ul>
+                            <li>
+                                <span class="material-icons-outlined">person</span>
+                                <a href="preparation.html#Ivan1">Ivan one</a>
+                            </li>
+                            <li>
+                                <span class="material-icons-outlined">person</span>
+                                <a href="team.html#Ivan2">Ivan two</a>
+                            </li>
+                            <li>
+                                <span class="material-icons-outlined">person</span>
+                                <a href="preparation.html#Ivan3">Ivan three</a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="btn-main" onmouseover="mouseover_on_nav_item(this)" onmouseout="mouseout_on_nav_item(this)">
+                    <a href="#">Immigration</a>
+                    <div class="nav-submenu" onmouseover="mouseover_on_nav_item(this)">
+                        <ul>
+                            <li>
+                                <span class="material-icons-outlined">task</span>
+                                <a href="https://immigration.gov.bb/"> Barbados Immigration Department</a>
+                            </li>
+                            <li>
+                                <span class="material-icons-outlined">task</span>
+                                <a href="https://csme.caricom.org/">Caricom Skilled Certificate</a>
+                            </li>
+                            <li>
+                                <span class="material-icons-outlined">task</span>
+                                <a href="immigration.html">Embassies</a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="btn-main">
+                    <a href="about.html">Activities</a>
+                </li>
+            </ul> 
         </nav>
         <main>
             <div class="main-image slider">
@@ -94,10 +284,19 @@
                     </article>
                 </section>
                 <aside>
+                    <div class="d-none d-sm-block col-12 col-sm-10 col-md-8 col-lg-6 float-end">
+                        <h3>Fun facts about Barbados</h3>
+                        <ul>
+                            <li>The island was a coral reef</li>
+                            <li>Rihanna was born in Westbury Street</li>
+                            <li>Flying fish do not fly</li>
+                        </ul>
+                    </div>
                 </aside>
             </div>
         </main>
         <footer>
+         <p>©Copyright 2021 by Carol. All rights reversed.</p>     
         </footer>        
     </body>
     <!-- The core Firebase JS SDK is always required and must be listed first -->
